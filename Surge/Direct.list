@@ -11,3 +11,6 @@ DOMAIN-SUFFIX,api-flowercloud.com,Direct
 # > DMIT服务
 DOMAIN-SUFFIX,tsuki.sbs,Direct
 DOMAIN-SUFFIX,dmit.io,Direct
+
+# > DNS服务
+DOMAIN-SUFFIX,dnshe.com,Direct
