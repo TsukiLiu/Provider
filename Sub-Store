@@ -1,0 +1,75 @@
+const countryTranslateMap = {
+    // 亚洲
+    "香港": "Hong Kong", "台湾": "Taiwan", "日本": "Japan", "新加坡": "Singapore",
+    "韩国": "South Korea", "印尼": "Indonesia", "泰国": "Thailand", "越南": "Vietnam",
+    "印度": "India", "巴基斯坦": "Pakistan", "以色列": "Israel", "阿联酋": "UAE",
+    "菲律宾": "Philippines", "马来西亚": "Malaysia", "埃及": "Egypt", "澳门": "Macau",
+    // 欧洲
+    "英国": "United Kingdom", "德国": "Germany", "法国": "France", "荷兰": "Netherlands",
+    "土耳其": "Turkey", "俄罗斯": "Russia", "摩尔多瓦": "Moldova", "乌克兰": "Ukraine",
+    "意大利": "Italy", "匈牙利": "Hungary", "西班牙": "Spain",
+    // 北美洲
+    "美国": "United States", "加拿大": "Canada",
+    // 南美洲
+    "阿根廷": "Argentina", "巴西": "Brazil", "智利": "Chile",
+    // 大洋洲
+    "澳大利亚": "Australia", "澳洲": "Australia", "新西兰": "New Zealand",
+    // 非洲
+    "尼日利亚": "Nigeria"
+};
+
+// 使用对象来分别记录每个地区的计数器
+let counters = {};
+
+proxies.forEach(proxy => {
+    let originalName = proxy.name;
+    let baseName = "";
+    
+    // 1. 提取国旗图标
+    let flagIcon = "";
+    let flagMatch = originalName.match(/^([\uD83C][\uDDE6-\uDDFF][\uD83C][\uDDE6-\uDDFF])/);
+    if (flagMatch) {
+        flagIcon = flagMatch[1];
+    }
+
+    // 2. 提取类似 [Premium] 这样的高级标签
+    let tags = "";
+    let tagMatch = originalName.match(/\[.*?\]/g);
+    if (tagMatch) {
+        tags = " " + tagMatch.join(" "); // 拼装成 " [Premium]" 备用
+    }
+
+    // 3. 剥离多余杂质，只保留核心中文名或英文名
+    let textName = originalName.replace(/[\uD83C][\uDDE6-\uDDFF][\uD83C][\uDDE6-\uDDFF]/g, '') // 移除国旗
+                                .replace(/\[.*?\]/g, '') // 临时移除标签
+                                .replace(/\s*标准\s*IEPL\s*专线\s*/g, '') // 移除“标准 IEPL 专线”杂质
+                                .replace(/\s*\d+\s*$/, '') // 移除最末尾的数字
+                                .trim();
+
+    // 4. 判断是否需要翻译
+    if (countryTranslateMap[textName]) {
+        baseName = countryTranslateMap[textName]; // 翻译成纯英文（例如 "Japan"）
+    } else {
+        baseName = textName; // 如果不在字典里（比如已经是 "Hong Kong"），就保持原样
+    }
+
+    // 5. 进行分组独立排号和重新组装
+    if (baseName) {
+        // 如果这个地区是第一次出现，计数器初始化为 1
+        if (!counters[baseName]) {
+            counters[baseName] = 1;
+        }
+        
+        // 生成两位数序号 (01, 02...)
+        let num = counters[baseName].toString().padStart(2, '0');
+        
+        // 把国旗和核心名称拼起来（如果有国旗的话，中间加个空格）
+        let prefix = flagIcon ? `${flagIcon} ${baseName}` : baseName;
+        
+        // 最终重命名：国旗 + 英文名 + [标签] + 独立序号
+        proxy.name = `${prefix}${tags} ${num}`;
+        
+        // 该地区专属计数器 +1
+        counters[baseName]++;
+    }
+});
