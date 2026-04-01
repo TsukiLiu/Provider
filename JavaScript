@@ -1,0 +1,79 @@
+const countryTranslateMap = {
+    // 亚洲
+    "香港": "Hong Kong", "台湾": "Taiwan", "日本": "Japan", "新加坡": "Singapore",
+    "韩国": "South Korea", "印尼": "Indonesia", "泰国": "Thailand", "越南": "Vietnam",
+    "印度": "India", "巴基斯坦": "Pakistan", "以色列": "Israel", "阿联酋": "UAE",
+    "菲律宾": "Philippines", "马来西亚": "Malaysia", "埃及": "Egypt", "澳门": "Macau",
+    // 欧洲
+    "英国": "United Kingdom", "德国": "Germany", "法国": "France", "荷兰": "Netherlands",
+    "土耳其": "Turkey", "俄罗斯": "Russia", "摩尔多瓦": "Moldova", "乌克兰": "Ukraine",
+    "意大利": "Italy", "匈牙利": "Hungary", "西班牙": "Spain",
+    // 北美洲
+    "美国": "United States", "加拿大": "Canada",
+    // 南美洲
+    "阿根廷": "Argentina", "巴西": "Brazil", "智利": "Chile",
+    // 大洋洲
+    "澳大利亚": "Australia", "澳洲": "Australia", "新西兰": "New Zealand",
+    // 非洲
+    "尼日利亚": "Nigeria"
+};
+
+// 使用对象来分别记录每个地区的计数器
+let counters = {};
+
+proxies.forEach(proxy => {
+    let originalName = proxy.name;
+    let baseName = "";
+    
+    // 1. 提取国旗图标
+    let flagIcon = "";
+    let flagMatch = originalName.match(/^([\uD83C][\uDDE6-\uDDFF][\uD83C][\uDDE6-\uDDFF])/);
+    if (flagMatch) {
+        flagIcon = flagMatch[1];
+    }
+
+    // 2. 提取类似 [Premium] 这样的高级标签
+    let tags = "";
+    let tagMatch = originalName.match(/\[.*?\]/g);
+    if (tagMatch) {
+        // 【修改点】：在标签前加回空格
+        tags = " " + tagMatch.join(" "); 
+    }
+    // 【修改点】：如果原始名称包含“高级”，追加带有前导空格的 [Premium] 标签
+    if (originalName.includes("高级")) {
+        tags += " [Premium]";
+    }
+
+    // 3. 剥离多余杂质，只保留核心中文名或英文名
+    let textName = originalName.replace(/[\uD83C][\uDDE6-\uDDFF][\uD83C][\uDDE6-\uDDFF]/g, '') 
+                                .replace(/\[.*?\]/g, '') 
+                                .replace(/\s*标准\s*IEPL\s*专线\s*/g, '') 
+                                .replace(/\s*高级\s*IEPL\s*专线\s*/g, '') 
+                                .replace(/\s*\d+\s*$/, '') 
+                                .trim();
+
+    // 4. 判断是否需要翻译
+    if (countryTranslateMap[textName]) {
+        baseName = countryTranslateMap[textName]; 
+    } else {
+        baseName = textName; 
+    }
+
+    // 5. 进行分组独立排号和重新组装
+    if (baseName) {
+        if (!counters[baseName]) {
+            counters[baseName] = 1;
+        }
+        
+        // 生成两位数序号 (01, 02...)
+        let num = counters[baseName].toString().padStart(2, '0');
+        // 把国旗和核心名称拼起来
+        let prefix = flagIcon ? `${flagIcon} ${baseName}` : baseName;
+        
+        // 最终重命名：前缀 + 空格 + 序号 + 标签(标签自带了前面的空格)
+        proxy.name = `${prefix} ${num}${tags}`;
+        
+        // 该地区专属计数器 +1
+        counters[baseName]++;
+    }
+});
