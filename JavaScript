@@ -32,16 +32,21 @@ proxies.forEach(proxy => {
         flagIcon = flagMatch[1];
     }
 
-    // 2. 提取类似 [Premium] 这样的高级标签
+    // 2. 提取并生成标签
     let tags = "";
     let tagMatch = originalName.match(/\[.*?\]/g);
     if (tagMatch) {
-        // 【修改点】：在标签前加回空格
         tags = " " + tagMatch.join(" "); 
     }
-    // 【修改点】：如果原始名称包含“高级”，追加带有前导空格的 [Premium] 标签
+    
+    // 识别“高级”并追加标签 (如果你需要改成 [IX]，直接改中括号里的字即可)
     if (originalName.includes("高级")) {
-        tags += " [Premium]";
+        tags += " [IX]";
+    }
+    
+    // 识别“实验”并追加标签
+    if (originalName.includes("实验")) {
+        tags += " [HA]"; 
     }
 
     // 3. 剥离多余杂质，只保留核心中文名或英文名
@@ -49,6 +54,8 @@ proxies.forEach(proxy => {
                                 .replace(/\[.*?\]/g, '') 
                                 .replace(/\s*标准\s*IEPL\s*专线\s*/g, '') 
                                 .replace(/\s*高级\s*IEPL\s*专线\s*/g, '') 
+                                // 【修改点】：完整移除“实验性 IEPL 专线”字样
+                                .replace(/\s*实验性?\s*IEPL\s*专线\s*/g, '') 
                                 .replace(/\s*\d+\s*$/, '') 
                                 .trim();
 
@@ -70,7 +77,7 @@ proxies.forEach(proxy => {
         // 把国旗和核心名称拼起来
         let prefix = flagIcon ? `${flagIcon} ${baseName}` : baseName;
         
-        // 最终重命名：前缀 + 空格 + 序号 + 标签(标签自带了前面的空格)
+        // 最终重命名：前缀 + 空格 + 序号 + 标签
         proxy.name = `${prefix} ${num}${tags}`;
         
         // 该地区专属计数器 +1
