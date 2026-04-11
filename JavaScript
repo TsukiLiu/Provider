@@ -40,14 +40,10 @@ proxies.forEach(proxy => {
     }
     
     // 识别“高级”并追加标签 (如果你需要改成 [IX]，直接改中括号里的字即可)
-    //if (originalName.includes("高级")) {
-    //    tags += " [IX]";
-    //}
-    
-    // 识别“实验”并追加标签
-    //if (originalName.includes("实验")) {
-    //    tags += " [HA]"; 
-    //}
+    if (originalName.includes("高级")) {
+        tags += " [Premium]";
+    }
+
 
     // 3. 剥离多余杂质，只保留核心中文名或英文名
     let textName = originalName.replace(/[\uD83C][\uDDE6-\uDDFF][\uD83C][\uDDE6-\uDDFF]/g, '') 
